@@ -4,8 +4,16 @@ import { DartTestEntry, PatrolTestEntry } from "./types"
 
 async function setup(config: FullConfig) {
   const { baseURL } = config.projects[0].use
+  
+  // Get timeout from env, default to 120000ms (2 minutes)
+  const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 120000
+  console.error("DEBUG setup.ts: timeout =", timeout)
+  
   const browser = await chromium.launch()
   const page = await browser.newPage()
+  
+  // Set default timeout for all page operations
+  page.setDefaultTimeout(timeout)
 
   if (!baseURL) {
     throw new Error("baseURL is not set")
@@ -14,8 +22,6 @@ async function setup(config: FullConfig) {
   await page.goto(baseURL)
 
   await initialise(page)
-
-  const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 120000
 
   const { group: testEntries } = await page
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain

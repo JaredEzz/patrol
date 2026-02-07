@@ -6,6 +6,7 @@ export async function initialise(page: Page) {
   })
 
   const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 60000
+  console.error("DEBUG: timeout =", timeout)
 
   await page.waitForFunction(
     () => {
