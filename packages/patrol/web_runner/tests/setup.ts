@@ -15,10 +15,12 @@ async function setup(config: FullConfig) {
 
   await initialise(page)
 
+  const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 120000
+
   const { group: testEntries } = await page
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
     .waitForFunction(() => window.__patrol__getTests?.()!, {
-      timeout: 120000,
+      timeout,
     })
     .then(v => v.jsonValue())
 

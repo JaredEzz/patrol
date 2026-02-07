@@ -5,6 +5,8 @@ export async function initialise(page: Page) {
     window.__patrol__isInitialised = true
   })
 
+  const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 60000
+
   await page.waitForFunction(
     () => {
       if (!window.__patrol__onInitialised) return false
@@ -13,6 +15,6 @@ export async function initialise(page: Page) {
 
       return true
     },
-    { timeout: 60000 },
+    { timeout },
   )
 }

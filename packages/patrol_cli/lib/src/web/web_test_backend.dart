@@ -68,7 +68,7 @@ class WebTestBackend {
 
     try {
       // Wait for server to be ready and get the URL
-      final baseUrl = await _waitForWebServer(flutterProcess);
+      final baseUrl = await _waitForWebServer(flutterProcess, options);
 
       // Run Playwright tests
       await _runPlaywrightTests(
@@ -120,7 +120,7 @@ class WebTestBackend {
 
     try {
       // Wait for server to be ready and get the URL
-      final port = await _waitForWebDebugger(flutterProcess);
+      final port = await _waitForWebDebugger(flutterProcess, options);
 
       _attachForHotRestart(flutterProcess, switch (previousStdinModes) {
         final stdinModes? => () => flutterTool.revertInteractiveMode(
@@ -183,7 +183,7 @@ class WebTestBackend {
     return process;
   }
 
-  Future<String> _waitForWebServer(Process flutterProcess) {
+  Future<String> _waitForWebServer(Process flutterProcess, WebAppOptions options) {
     _logger.detail('Waiting for web server to start...');
 
     final completer = Completer<String>();
@@ -259,8 +259,11 @@ class WebTestBackend {
       }
     }).ignore();
 
-    // Timeout after 2 minutes
-    Timer(const Duration(minutes: 2), () {
+    final timeout = options.timeout != null
+        ? Duration(milliseconds: options.timeout!)
+        : const Duration(minutes: 2);
+
+    Timer(timeout, () {
       if (!completer.isCompleted) {
         stdoutSubscription.cancel();
         stderrSubscription.cancel();
@@ -271,7 +274,7 @@ class WebTestBackend {
     return completer.future;
   }
 
-  Future<String> _waitForWebDebugger(Process flutterProcess) {
+  Future<String> _waitForWebDebugger(Process flutterProcess, WebAppOptions options) {
     _logger.detail('Waiting for debugger to start...');
 
     final completer = Completer<String>();
@@ -315,8 +318,11 @@ class WebTestBackend {
       }
     }).ignore();
 
-    // Timeout after 2 minutes
-    Timer(const Duration(minutes: 2), () {
+    final timeout = options.timeout != null
+        ? Duration(milliseconds: options.timeout!)
+        : const Duration(minutes: 2);
+
+    Timer(timeout, () {
       if (!completer.isCompleted) {
         stdoutSubscription.cancel();
         stderrSubscription.cancel();
