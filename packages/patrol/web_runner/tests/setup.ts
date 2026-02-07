@@ -3,12 +3,14 @@ import { initialise } from "./initialise"
 import { DartTestEntry, PatrolTestEntry } from "./types"
 
 async function setup(config: FullConfig) {
-  const { baseURL, headless } = config.projects[0].use
+  const { baseURL, headless, locale, timezoneId } = config.projects[0].use
   
   // Get timeout from env, default to 120000ms (2 minutes)
   const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 120000
   console.error("DEBUG setup.ts: timeout =", timeout)
   console.error("DEBUG setup.ts: headless =", headless)
+  console.error("DEBUG setup.ts: locale =", locale)
+  console.error("DEBUG setup.ts: timezoneId =", timezoneId)
   
   // Launch browser with headless mode from config
   // Add args needed for headless Chrome in CI
@@ -21,7 +23,13 @@ async function setup(config: FullConfig) {
       '--disable-gpu',
     ] : [],
   })
-  const page = await browser.newPage()
+  
+  // Create a new context with locale settings
+  const context = await browser.newContext({
+    locale: locale ?? 'en-US',
+    timezoneId: timezoneId ?? 'America/New_York',
+  })
+  const page = await context.newPage()
   
   // Set default timeout for all page operations
   page.setDefaultTimeout(timeout)
