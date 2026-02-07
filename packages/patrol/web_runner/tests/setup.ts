@@ -3,17 +3,38 @@ import { initialise } from "./initialise"
 import { DartTestEntry, PatrolTestEntry } from "./types"
 
 async function setup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use
+  const { baseURL, headless } = config.projects[0].use
   
   // Get timeout from env, default to 120000ms (2 minutes)
   const timeout = process.env.PATROL_WEB_TIMEOUT ? parseInt(process.env.PATROL_WEB_TIMEOUT) : 120000
   console.error("DEBUG setup.ts: timeout =", timeout)
+  console.error("DEBUG setup.ts: headless =", headless)
   
-  const browser = await chromium.launch()
+  // Launch browser with headless mode from config
+  // Add args needed for headless Chrome in CI
+  const browser = await chromium.launch({
+    headless: headless ?? false,
+    args: headless ? [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+    ] : [],
+  })
   const page = await browser.newPage()
   
   // Set default timeout for all page operations
   page.setDefaultTimeout(timeout)
+  
+  // Log console messages from the browser to help debug Flutter/Dart issues
+  page.on('console', msg => {
+    console.error(`Browser console [${msg.type()}]: ${msg.text()}`)
+  })
+  
+  // Log any page errors
+  page.on('pageerror', error => {
+    console.error('Browser page error:', error.message)
+  })
 
   if (!baseURL) {
     throw new Error("baseURL is not set")
